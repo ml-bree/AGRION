@@ -1,0 +1,36 @@
+{
+  "source": "IITA - International Institute of Tropical Agriculture",
+  "crop": "Rice",
+  "facts": [
+    {
+      "id": "rice-land-prep",
+      "topic": "Land Preparation",
+      "season": "wet",
+      "text": "Plough and harrow the field two to three weeks before planting. Level the field well so water spreads evenly across the plot."
+    },
+    {
+      "id": "rice-variety",
+      "topic": "Variety Selection",
+      "season": "wet",
+      "text": "Use improved varieties such as FARO 44 or FARO 52 for higher yields and resistance to common pests."
+    },
+    {
+      "id": "rice-spacing",
+      "topic": "Spacing",
+      "season": "wet",
+      "text": "Transplant seedlings at 20cm by 20cm spacing. Use two to three seedlings per hole."
+    },
+    {
+      "id": "rice-fertilizer",
+      "topic": "Fertilizer",
+      "season": "wet",
+      "text": "Apply NPK at planting and top-dress with urea at tillering and panicle initiation stages."
+    },
+    {
+      "id": "rice-pest-stemborer",
+      "topic": "Pest Control",
+      "pest": "Stem borer",
+      "text": "Watch for dead hearts in young plants. Remove and destroy affected stems and keep the field weed free."
+    }
+  ]
+}

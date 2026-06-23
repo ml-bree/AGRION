@@ -1,0 +1,27 @@
+{
+  "source": "NiMet - Nigerian Meteorological Agency",
+  "issued": "2026-06-01",
+  "forecasts": [
+    {
+      "id": "fc-kano-2026-06",
+      "region": "Kano",
+      "period": "2026-06",
+      "rainfall_mm": 110,
+      "outlook": "Onset of steady rains. Suitable window for transplanting rice."
+    },
+    {
+      "id": "fc-kaduna-2026-06",
+      "region": "Kaduna",
+      "period": "2026-06",
+      "rainfall_mm": 145,
+      "outlook": "Above-average rainfall expected. Ensure good field drainage."
+    },
+    {
+      "id": "fc-niger-2026-06",
+      "region": "Niger",
+      "period": "2026-06",
+      "rainfall_mm": 130,
+      "outlook": "Reliable rains. Good conditions for land preparation and planting."
+    }
+  ]
+}
