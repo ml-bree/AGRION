@@ -1,0 +1,2 @@
+# Drop agricultural PDF guides here (IITA manuals, NiMet bulletins, market
+# reports), then build the vector store: python -m src.agent.rag

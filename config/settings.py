@@ -47,6 +47,14 @@ class Settings(BaseSettings):
     # Audio cache
     audio_cache_dir: str = Field(default="./.cache/audio")
 
+    # LangGraph agent
+    checkpoint_db_path: str = Field(default="./.cache/checkpoints.sqlite")
+    chroma_persist_dir: str = Field(default="./.cache/chroma")
+    agronomy_pdf_dir: str = Field(default="./data/pdfs")
+    embedding_model: str = Field(
+        default="sentence-transformers/all-MiniLM-L6-v2"
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:
