@@ -8,7 +8,9 @@ import {
   CalendarDays,
   Send,
   ArrowLeft,
-  CheckCircle
+  CheckCircle,
+  RefreshCw,
+  ChevronRight
 } from "lucide-react";
 
 interface Props {
@@ -17,6 +19,12 @@ interface Props {
 
 export function USSDSimulator({ block }: Props) {
   const [currentStep, setCurrentStep] = useState(block.currentStep);
+  const [selectedLanguage, setSelectedLanguage] = useState("Hausa");
+  const [selectedCrop, setSelectedCrop] = useState("Maize");
+  const [selectedRegion, setSelectedRegion] = useState("Kano");
+  const [selectedStage, setSelectedStage] = useState("Pre-planting");
+  const [showAdvisory, setShowAdvisory] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const steps = [
     { label: "Language", icon: <Globe className="w-4 h-4" /> },
@@ -26,85 +34,366 @@ export function USSDSimulator({ block }: Props) {
     { label: "Advisory", icon: <CheckCircle className="w-4 h-4" /> },
   ];
 
+  // Language options - ALL CLICKABLE
+  const languages = [
+    { code: "en", name: "English", flag: "🇬🇧", hausa: "Turanci", yoruba: "Gẹẹsi", igbo: "Bekee" },
+    { code: "ha", name: "Hausa", flag: "🇳🇬", hausa: "Hausa", yoruba: "Hausa", igbo: "Hausa" },
+    { code: "yo", name: "Yoruba", flag: "🇳🇬", hausa: "Yarbanci", yoruba: "Yoruba", igbo: "Yoruba" },
+    { code: "ig", name: "Igbo", flag: "🇳🇬", hausa: "Igbo", yoruba: "Igbo", igbo: "Igbo" },
+  ];
+
+  // Crop options - ALL CLICKABLE
+  const crops = [
+    { id: "maize", name: "Maize", hausa: "Masara", yoruba: "Agbado", igbo: "Ọka", emoji: "🌽" },
+    { id: "rice", name: "Rice", hausa: "Shinkafa", yoruba: "Iresi", igbo: "Osikapa", emoji: "🌾" },
+    { id: "cassava", name: "Cassava", hausa: "Rogo", yoruba: "Ege", igbo: "Akpu", emoji: "🥬" },
+    { id: "soya", name: "Soya", hausa: "Soya", yoruba: "Soya", igbo: "Soya", emoji: "🫘" },
+  ];
+
+  // Region options - ALL CLICKABLE
+  const regions = [
+    { id: "kano", name: "Kano", hausa: "Kano", yoruba: "Kano", igbo: "Kano" },
+    { id: "kaduna", name: "Kaduna", hausa: "Kaduna", yoruba: "Kaduna", igbo: "Kaduna" },
+    { id: "kebbi", name: "Kebbi", hausa: "Kebbi", yoruba: "Kebbi", igbo: "Kebbi" },
+    { id: "lagos", name: "Lagos", hausa: "Legas", yoruba: "Eko", igbo: "Lagos" },
+    { id: "oyo", name: "Oyo", hausa: "Oyo", yoruba: "Oyo", igbo: "Oyo" },
+    { id: "enugu", name: "Enugu", hausa: "Enugu", yoruba: "Enugu", igbo: "Enugu" },
+  ];
+
+  // Stage options - ALL CLICKABLE
+  const stages = [
+    { id: "pre", name: "Pre-planting", hausa: "Kafin shuka", yoruba: "Ṣaaju dida", igbo: "Tupu ịkụ", emoji: "🌱" },
+    { id: "planting", name: "Planting", hausa: "Shuka", yoruba: "Dida", igbo: "Ịkụ", emoji: "🌿" },
+    { id: "growing", name: "Growing", hausa: "Girma", yoruba: "Dagba", igbo: "Itolite", emoji: "🌾" },
+    { id: "harvest", name: "Harvest", hausa: "Girbi", yoruba: "Ikore", igbo: "Owuwe", emoji: "🌻" },
+  ];
+
+  const getLanguageDisplay = (langCode: string) => {
+    const lang = languages.find(l => l.code === langCode);
+    return lang ? lang.name : "English";
+  };
+
+  const getCropDisplay = (cropId: string, langCode: string) => {
+    const crop = crops.find(c => c.id === cropId);
+    if (!crop) return cropId;
+    const map: Record<string, keyof typeof crop> = {
+      en: "name",
+      ha: "hausa",
+      yo: "yoruba",
+      ig: "igbo"
+    };
+    return crop[map[langCode] as keyof typeof crop] || crop.name;
+  };
+
+  const getRegionDisplay = (regionId: string, langCode: string) => {
+    const region = regions.find(r => r.id === regionId);
+    if (!region) return regionId;
+    const map: Record<string, keyof typeof region> = {
+      en: "name",
+      ha: "hausa",
+      yo: "yoruba",
+      ig: "igbo"
+    };
+    return region[map[langCode] as keyof typeof region] || region.name;
+  };
+
+  const getStageDisplay = (stageId: string, langCode: string) => {
+    const stage = stages.find(s => s.id === stageId);
+    if (!stage) return stageId;
+    const map: Record<string, keyof typeof stage> = {
+      en: "name",
+      ha: "hausa",
+      yo: "yoruba",
+      ig: "igbo"
+    };
+    return stage[map[langCode] as keyof typeof stage] || stage.name;
+  };
+
   const handleStepClick = (index: number) => {
-    if (index <= block.currentStep) {
+    if (index <= currentStep && !isTransitioning) {
+      setIsTransitioning(true);
       setCurrentStep(index);
+      setTimeout(() => setIsTransitioning(false), 300);
     }
   };
 
+  const handleNext = () => {
+    if (currentStep < steps.length - 1 && !isTransitioning) {
+      setIsTransitioning(true);
+      setCurrentStep(currentStep + 1);
+      setTimeout(() => setIsTransitioning(false), 300);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0 && !isTransitioning) {
+      setIsTransitioning(true);
+      setCurrentStep(currentStep - 1);
+      setTimeout(() => setIsTransitioning(false), 300);
+    }
+  };
+
+  const handleReset = () => {
+    setCurrentStep(0);
+    setShowAdvisory(false);
+  };
+
+  const handleLanguageSelect = (lang: string) => {
+    setSelectedLanguage(lang);
+    setTimeout(() => handleNext(), 400);
+  };
+
+  const handleCropSelect = (crop: string) => {
+    setSelectedCrop(crop);
+    setTimeout(() => handleNext(), 400);
+  };
+
+  const handleRegionSelect = (region: string) => {
+    setSelectedRegion(region);
+    setTimeout(() => handleNext(), 400);
+  };
+
+  const handleStageSelect = (stage: string) => {
+    setSelectedStage(stage);
+    setTimeout(() => handleNext(), 400);
+  };
+
+  const getStepTitle = () => {
+    const lang = selectedLanguage.toLowerCase();
+    const titles: Record<string, Record<number, string>> = {
+      en: { 0: "Select your language", 1: "Select your crop", 2: "Select your state", 3: "What is your farm stage?" },
+      ha: { 0: "Zaɓi yarenka", 1: "Zaɓi amfanin gona", 2: "Zaɓi jihar ka", 3: "Menene marhalar noma ka?" },
+      yo: { 0: "Yan ede rẹ", 1: "Yan irugbin rẹ", 2: "Yan ipinle rẹ", 3: "Ipele ogbin rẹ?" },
+      ig: { 0: "Họrọ asụsụ gị", 1: "Họrọ ihe ọkụkụ gị", 2: "Họrọ steeti gị", 3: "Oge ọrụ ugbo gị?" },
+    };
+    return titles[lang]?.[currentStep] || titles.en[currentStep] || "";
+  };
+
+  const getStepSubtitle = () => {
+    const lang = selectedLanguage.toLowerCase();
+    const subtitles: Record<string, Record<number, string>> = {
+      en: { 0: "", 1: "", 2: "", 3: "" },
+      ha: { 0: "", 1: "(Select your crop)", 2: "(Select your state)", 3: "(What is your farm stage?)" },
+      yo: { 0: "", 1: "(Yan irugbin rẹ)", 2: "(Yan ipinle rẹ)", 3: "(Ipele ogbin rẹ?)" },
+      ig: { 0: "", 1: "(Họrọ ihe ọkụkụ gị)", 2: "(Họrọ steeti gị)", 3: "(Oge ọrụ ugbo gị?)" },
+    };
+    return subtitles[lang]?.[currentStep] || "";
+  };
+
   const getStepContent = () => {
+    const lang = selectedLanguage.toLowerCase();
+    
     switch (currentStep) {
       case 0:
         return (
-          <>
-            <div className="text-marigold dark:text-dark-accent mb-2 text-sm font-medium">Welcome to AgriConnect Nigeria</div>
-            <div className="space-y-1 text-sm">
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">1.</span> Hausa</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">2.</span> Yoruba</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">3.</span> Igbo</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">4.</span> English</div>
+          <div className="space-y-3">
+            <div className="text-marigold dark:text-dark-accent text-sm font-medium">
+              {getStepTitle()}
             </div>
-            <div className="mt-3 text-xs text-dallas dark:text-dark-text2">Enter option:</div>
-          </>
+            {getStepSubtitle() && (
+              <div className="text-xs text-gray-400 -mt-1">{getStepSubtitle()}</div>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              {languages.map((langOpt) => {
+                const displayName = langOpt[lang as keyof typeof langOpt] || langOpt.name;
+                return (
+                  <button
+                    key={langOpt.code}
+                    onClick={() => handleLanguageSelect(langOpt.name)}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      selectedLanguage === langOpt.name
+                        ? 'border-marigold dark:border-dark-accent bg-marigold/10 dark:bg-dark-accent/10'
+                        : 'border-gray-700 hover:border-gray-500'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>{langOpt.flag}</span>
+                      <span className="text-sm">{displayName}</span>
+                      {selectedLanguage === langOpt.name && (
+                        <CheckCircle className="w-4 h-4 text-marigold dark:text-dark-accent ml-auto" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-xs text-gray-500 mt-2">Enter option: {languages.findIndex(l => l.name === selectedLanguage) + 1}</div>
+          </div>
         );
       case 1:
         return (
-          <>
-            <div className="text-marigold dark:text-dark-accent mb-2 text-sm font-medium">Zaɓi amfanin gona (Select crop)</div>
-            <div className="space-y-1 text-sm">
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">1.</span> Masara (Maize)</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">2.</span> Shinkafa (Rice)</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">3.</span> Rogo (Cassava)</div>
-              <div className="flex items-center gap-2 text-dallas/60 dark:text-dark-text2/60"><span className="text-dallas dark:text-dark-text2">0.</span> Koma (Back)</div>
+          <div className="space-y-3">
+            <div className="text-marigold dark:text-dark-accent text-sm font-medium">
+              {getStepTitle()}
             </div>
-            <div className="mt-3 text-xs text-dallas dark:text-dark-text2">Shigar zaɓi:</div>
-          </>
+            {getStepSubtitle() && (
+              <div className="text-xs text-gray-400 -mt-1">{getStepSubtitle()}</div>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              {crops.map((crop, idx) => {
+                const displayName = crop[lang as keyof typeof crop] || crop.name;
+                return (
+                  <button
+                    key={crop.id}
+                    onClick={() => handleCropSelect(crop.name)}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      selectedCrop === crop.name
+                        ? 'border-marigold dark:border-dark-accent bg-marigold/10 dark:bg-dark-accent/10'
+                        : 'border-gray-700 hover:border-gray-500'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>{crop.emoji}</span>
+                      <span className="text-sm">{displayName}</span>
+                      {selectedCrop === crop.name && (
+                        <CheckCircle className="w-4 h-4 text-marigold dark:text-dark-accent ml-auto" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <button onClick={handleBack} className="hover:text-white">0. Koma (Back)</button>
+            </div>
+          </div>
         );
       case 2:
         return (
-          <>
-            <div className="text-marigold dark:text-dark-accent mb-2 text-sm font-medium">Zaɓi jihar ka (Select state)</div>
-            <div className="space-y-1 text-sm">
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">1.</span> Kano</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">2.</span> Kaduna</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">3.</span> Kebbi</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">4.</span> Lagos</div>
-              <div className="flex items-center gap-2 text-dallas/60 dark:text-dark-text2/60"><span className="text-dallas dark:text-dark-text2">0.</span> Koma</div>
+          <div className="space-y-3">
+            <div className="text-marigold dark:text-dark-accent text-sm font-medium">
+              {getStepTitle()}
             </div>
-            <div className="mt-3 text-xs text-dallas dark:text-dark-text2">Shigar zaɓi:</div>
-          </>
+            {getStepSubtitle() && (
+              <div className="text-xs text-gray-400 -mt-1">{getStepSubtitle()}</div>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              {regions.map((region) => {
+                const displayName = region[lang as keyof typeof region] || region.name;
+                return (
+                  <button
+                    key={region.id}
+                    onClick={() => handleRegionSelect(region.name)}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      selectedRegion === region.name
+                        ? 'border-marigold dark:border-dark-accent bg-marigold/10 dark:bg-dark-accent/10'
+                        : 'border-gray-700 hover:border-gray-500'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{displayName}</span>
+                      {selectedRegion === region.name && (
+                        <CheckCircle className="w-4 h-4 text-marigold dark:text-dark-accent ml-auto" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <button onClick={handleBack} className="hover:text-white">0. Koma (Back)</button>
+            </div>
+          </div>
         );
       case 3:
         return (
-          <>
-            <div className="text-marigold dark:text-dark-accent mb-2 text-sm font-medium">Menene marhalar noma ka? (Farm stage?)</div>
-            <div className="space-y-1 text-sm">
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">1.</span> Pre-planting</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">2.</span> Planting</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">3.</span> Growing</div>
-              <div className="flex items-center gap-2"><span className="text-dallas dark:text-dark-text2">4.</span> Harvest</div>
-              <div className="flex items-center gap-2 text-dallas/60 dark:text-dark-text2/60"><span className="text-dallas dark:text-dark-text2">0.</span> Koma</div>
+          <div className="space-y-3">
+            <div className="text-marigold dark:text-dark-accent text-sm font-medium">
+              {getStepTitle()}
             </div>
-            <div className="mt-3 text-xs text-dallas dark:text-dark-text2">Shigar zaɓi:</div>
-          </>
+            {getStepSubtitle() && (
+              <div className="text-xs text-gray-400 -mt-1">{getStepSubtitle()}</div>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              {stages.map((stage) => {
+                const displayName = stage[lang as keyof typeof stage] || stage.name;
+                return (
+                  <button
+                    key={stage.id}
+                    onClick={() => handleStageSelect(stage.name)}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      selectedStage === stage.name
+                        ? 'border-marigold dark:border-dark-accent bg-marigold/10 dark:bg-dark-accent/10'
+                        : 'border-gray-700 hover:border-gray-500'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>{stage.emoji}</span>
+                      <span className="text-sm">{displayName}</span>
+                      {selectedStage === stage.name && (
+                        <CheckCircle className="w-4 h-4 text-marigold dark:text-dark-accent ml-auto" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <button onClick={handleBack} className="hover:text-white">0. Koma (Back)</button>
+            </div>
+          </div>
         );
       case 4:
         return (
-          <>
-            <div className="text-marigold dark:text-dark-accent mb-2 text-sm font-medium">NASIHA / ADVISORY</div>
-            <div className="text-sm leading-relaxed space-y-2">
-              <p className="text-thunder dark:text-dark-text">{block.advisory}</p>
-              <div className="bg-marigold/10 dark:bg-dark-accent/10 border border-marigold/30 dark:border-dark-accent/30 rounded p-2 text-xs text-thunder dark:text-dark-text">
-                {block.action}
-              </div>
-              <p className="text-xs text-dallas dark:text-dark-text2">SMS an aika ✓</p>
+          <div className="space-y-3">
+            <div className="text-marigold dark:text-dark-accent text-sm font-medium flex items-center gap-2">
+              <span>⚠️</span> NASIHA / ADVISORY
             </div>
-          </>
+            <div className="bg-marigold/5 dark:bg-dark-accent/5 border border-marigold/20 dark:border-dark-accent/20 rounded-lg p-3 space-y-2">
+              <div className="text-xs text-gray-400">{selectedRegion} · {selectedCrop} · 2026</div>
+              <p className="text-sm leading-relaxed text-white">
+                {lang === "ha" 
+                  ? `Ruwan sama zai makara a ${selectedRegion} wannan shekarar. Jira makonni 2 kafin dasa. Yi amfani da SAMMAZ 15 wanda yake jurewa fari.`
+                  : lang === "yo"
+                  ? `Ojo yoo pẹ ni ${selectedRegion} ni ọdun yii. Duro ọsẹ 2 ṣaaju dida. Lo SAMMAZ 15 ti o ko ogbele.`
+                  : lang === "ig"
+                  ? `Mmiri ozuzo ga-egbu oge na ${selectedRegion} n'afọ a. Chere izu 2 tupu ịkụ. Jiri SAMMAZ 15 nke na-eguzogide ọkọchị.`
+                  : `Rains will be late in ${selectedRegion} this year. Wait 2 weeks before planting. Use SAMMAZ 15 which is drought-tolerant.`
+                }
+              </p>
+              <div className="bg-marigold/10 dark:bg-dark-accent/10 border border-marigold/30 dark:border-dark-accent/30 rounded p-2">
+                <p className="text-xs text-marigold dark:text-dark-accent">
+                  💰 {lang === "ha" 
+                    ? `Ajiye ₦2,000 akan CashCard kafin sayo taki`
+                    : lang === "yo"
+                    ? `Fipamọ ₦2,000 lori CashCard rẹ ṣaaju ra ajile`
+                    : lang === "ig"
+                    ? `Chekwaa ₦2,000 na CashCard gị tupu ịzụta fatiliza`
+                    : `Save ₦2,000 on your CashCard before buying fertilizer`
+                  }
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <CheckCircle className="w-3 h-3 text-green-500" />
+                SMS an aika ✓
+              </div>
+            </div>
+            <button 
+              onClick={handleReset}
+              className="w-full py-2 text-xs text-gray-400 hover:text-white border border-gray-700 rounded-lg transition-colors"
+            >
+              0. Ƙarshe (End Session)
+            </button>
+          </div>
         );
       default:
         return null;
     }
   };
+
+  const getCurrentStepInfo = () => {
+    const labels = {
+      en: ["Language", "Crop", "Region", "Stage", "Advisory"],
+      ha: ["Yare", "Amfanin gona", "Jiha", "Marhalar noma", "Nasiha"],
+      yo: ["Ede", "Irugbin", "Ipinle", "Ipele", "Imọran"],
+      ig: ["Asụsụ", "Ihe ọkụkụ", "Steeti", "Oge", "Ndụmọdụ"]
+    };
+    const lang = selectedLanguage.toLowerCase();
+    const label = labels[lang as keyof typeof labels] || labels.en;
+    return { number: currentStep + 1, total: 5, label: label[currentStep] };
+  };
+
+  const stepInfo = getCurrentStepInfo();
 
   return (
     <div className="rounded-xl border border-sand dark:border-dark-border bg-white dark:bg-dark-surface p-4 shadow-sm transition-colors duration-300">
@@ -113,51 +402,95 @@ export function USSDSimulator({ block }: Props) {
           <Phone className="w-5 h-5 text-marigold dark:text-dark-accent" />
           USSD Flow Simulator
         </h3>
-        <span className="text-xs bg-cream dark:bg-dark-bg2 text-dallas dark:text-dark-text2 px-2 py-1 rounded font-mono">*384#</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs bg-cream dark:bg-dark-bg2 text-dallas dark:text-dark-text2 px-2 py-1 rounded font-mono">*384#</span>
+          <button 
+            onClick={handleReset}
+            className="text-xs text-dallas dark:text-dark-text2 hover:text-marigold dark:hover:text-dark-accent transition-colors"
+            title="Reset"
+          >
+            <RefreshCw className="w-3 h-3" />
+          </button>
+        </div>
       </div>
 
-      <div className="flex items-center justify-between mb-6 relative">
-        {steps.map((step, index) => (
-          <div key={index} className="flex flex-col items-center flex-1">
+      {/* Step Tracker - Longer and clearer */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-dallas dark:text-dark-text2 font-mono">
+            *384#
+          </span>
+          <span className="text-xs text-dallas dark:text-dark-text2">
+            Step {stepInfo.number} of {stepInfo.total} · {stepInfo.label}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          {steps.map((step, index) => (
             <button
+              key={index}
               onClick={() => handleStepClick(index)}
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
-                ${index <= currentStep 
-                  ? 'bg-marigold dark:bg-dark-accent text-white cursor-pointer hover:bg-marigold/80 dark:hover:bg-dark-accent/80' 
-                  : 'bg-cream dark:bg-dark-bg2 text-dallas dark:text-dark-text2 cursor-not-allowed'
-                }`}
+              className={`flex-1 h-2 rounded-full transition-all ${
+                index < currentStep 
+                  ? 'bg-marigold dark:bg-dark-accent' 
+                  : index === currentStep 
+                    ? 'bg-marigold dark:bg-dark-accent animate-pulse' 
+                    : 'bg-cream dark:bg-dark-bg2'
+              }`}
+              disabled={index > currentStep}
+            />
+          ))}
+        </div>
+        <div className="flex items-center justify-between mt-1">
+          {steps.map((step, index) => (
+            <button
+              key={index}
+              onClick={() => handleStepClick(index)}
+              className={`text-[8px] uppercase tracking-wider ${
+                index <= currentStep 
+                  ? 'text-marigold dark:text-dark-accent' 
+                  : 'text-dallas dark:text-dark-text2'
+              }`}
               disabled={index > currentStep}
             >
-              {step.icon}
-            </button>
-            <span className={`text-[10px] mt-1 ${index <= currentStep ? 'text-thunder dark:text-dark-text font-medium' : 'text-dallas dark:text-dark-text2'}`}>
               {step.label}
-            </span>
-          </div>
-        ))}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="bg-ussd-bg dark:bg-ussd-bg rounded-lg p-4 text-white font-mono text-sm min-h-[200px]">
-        <div className="flex justify-between text-xs text-ussd-dim dark:text-ussd-dim mb-3">
+      {/* Phone Screen - MUCH TALLER */}
+      <div className="bg-ussd-bg dark:bg-ussd-bg rounded-lg p-5 min-h-[340px] text-white font-mono text-sm transition-all duration-300">
+        <div className="flex justify-between text-xs text-ussd-dim mb-4">
           <span>*384#</span>
-          <span>Step {currentStep + 1} of {block.totalSteps}</span>
+          <span>Step {stepInfo.number} of {stepInfo.total}</span>
         </div>
         {getStepContent()}
       </div>
 
-      <div className="flex gap-2 mt-3">
+      {/* Navigation */}
+      <div className="flex gap-2 mt-4">
         <button 
-          onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-          className="flex-1 bg-cream dark:bg-dark-bg2 hover:bg-sand/20 dark:hover:bg-dark-bg3 text-thunder dark:text-dark-text py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          onClick={handleBack}
+          disabled={currentStep === 0}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+            currentStep === 0
+              ? 'bg-cream dark:bg-dark-bg2 text-dallas/50 dark:text-dark-text2/50 cursor-not-allowed'
+              : 'bg-cream dark:bg-dark-bg2 hover:bg-sand/20 dark:hover:bg-dark-bg3 text-thunder dark:text-dark-text'
+          }`}
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
         <button 
-          onClick={() => setCurrentStep(Math.min(block.totalSteps - 1, currentStep + 1))}
-          className="flex-1 bg-marigold dark:bg-dark-accent hover:bg-marigold/80 dark:hover:bg-dark-accent/80 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          onClick={handleNext}
+          disabled={currentStep === steps.length - 1}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+            currentStep === steps.length - 1
+              ? 'bg-green-600/50 text-white/50 cursor-not-allowed'
+              : 'bg-marigold dark:bg-dark-accent hover:bg-marigold/80 dark:hover:bg-dark-accent/80 text-white'
+          }`}
         >
-          {currentStep === block.totalSteps - 1 ? (
+          {currentStep === steps.length - 1 ? (
             <>
               <CheckCircle className="w-4 h-4" />
               Complete
@@ -169,6 +502,21 @@ export function USSDSimulator({ block }: Props) {
             </>
           )}
         </button>
+        <button 
+          onClick={handleReset}
+          className="px-4 py-2.5 rounded-lg text-sm font-medium transition-colors bg-red-500/10 hover:bg-red-500/20 text-red-400"
+          title="End Session"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Session Info */}
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-dallas dark:text-dark-text2 bg-cream dark:bg-dark-bg2 p-2 rounded">
+        <span className="font-medium">Session:</span>
+        <span>{selectedLanguage} · {selectedCrop} · {selectedRegion} · {selectedStage}</span>
+        <span className="w-1 h-1 rounded-full bg-dallas/30"></span>
+        <span className="text-green-500">● Active</span>
       </div>
     </div>
   );
