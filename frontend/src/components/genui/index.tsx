@@ -10,7 +10,7 @@ import { MultilingualSupport } from "./MultilingualSupport";
 import { IVRSimulator } from "./IVRSimulator";
 import { VoiceScript } from "./VoiceScript";
 import { TTSOutput } from "./TTSOutput";
-import { SMSPreview } from "./SMSPreview";
+// import { SMSPreview } from "./SMSPreview";
 
 /**
  * Renders a single AI block by dispatching on its discriminator. New block
@@ -40,8 +40,8 @@ export function GenUIRenderer({ block }: { block: GenUIBlock }) {
       return <VoiceScript block={block} />;
     case "tts":
       return <TTSOutput block={block} />;
-    case "sms_preview":
-      return <SMSPreview block={block} />;
+    // case "sms_preview":
+    //   return <SMSPreview block={block} />;
     case "stt":
       // STT (speech-to-text) blocks don't use the TTSOutput component.
       // Return null for now to avoid type mismatches; add a dedicated
