@@ -30,6 +30,8 @@ export function VisionPipeline({ block }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  void block;
+
   const stages = [
     { id: 0, label: "Stage 1 — Backend capture (MMS received)", icon: "📥" },
     { id: 1, label: "Stage 2 — AI upscaling & denoising", icon: "🔍" },
