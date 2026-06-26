@@ -180,6 +180,18 @@ export interface PrivacyConsentBlock {
   type: "privacy_consent";
 }
 
+// ==================== SMS INBOX BLOCK TYPES ====================
+
+export interface SMSInboxBlock {
+  type: "sms_inbox";
+}
+
+// ==================== USSD FLOW CHART BLOCK TYPES ====================
+
+export interface USSDFlowChartBlock {
+  type: "ussd_flow_chart";
+}
+
 // Update the GenUIBlock type to include all AI blocks
 export type GenUIBlock = 
   | WeatherBlock 
@@ -196,4 +208,6 @@ export type GenUIBlock =
   | STTBlock
   | SMSPreviewBlock
   | VisionPipelineBlock
-  | PrivacyConsentBlock;
+  | PrivacyConsentBlock
+  | SMSInboxBlock
+  | USSDFlowChartBlock;

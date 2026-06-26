@@ -13,6 +13,8 @@ import { TTSOutput } from "./TTSOutput";
 import { SMSPreview } from "./SMSPreview";
 import { VisionPipeline } from "./VisionPipeline";
 import { PrivacyConsent } from "./PrivacyConsent";
+import { SMSInbox } from "./SMSInbox";
+import { USSDFlowChart } from "./USSDFlowChart";
 
 /**
  * Renders a single AI block by dispatching on its discriminator. New block
@@ -48,6 +50,10 @@ export function GenUIRenderer({ block }: { block: GenUIBlock }) {
       return <VisionPipeline block={block} />;
     case "privacy_consent":
       return <PrivacyConsent block={block} />;
+    case "sms_inbox":
+      return <SMSInbox block={block} />;
+    case "ussd_flow_chart":
+      return <USSDFlowChart block={block} />;
     case "stt":
       // STT (speech-to-text) blocks don't use the TTSOutput component.
       // Return null for now to avoid type mismatches; add a dedicated
