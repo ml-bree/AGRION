@@ -167,6 +167,16 @@ const mockBlocks = [
   {
     type: "privacy_consent" as const,
   },
+
+  // 12. SMS Inbox
+  {
+    type: "sms_inbox" as const,
+  },
+
+  // 13. USSD Flow Chart
+  {
+    type: "ussd_flow_chart" as const,
+  },
 ];
 
 // ==================== APP ====================
@@ -182,16 +192,16 @@ export default function App() {
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
       <main className="min-h-screen bg-cream dark:bg-dark-bg p-6 transition-colors duration-300">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <header className="flex justify-between items-center border-b border-sand dark:border-dark-border pb-4 mb-4">
+          <header className="flex justify-between items-center border-b border-sand dark:border-dark-border pb-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-thunder dark:text-dark-text flex items-center gap-2">
+              <h1 className="text-3xl font-bold text-thunder dark:text-dark-text flex items-center gap-2">
                 <span className="text-marigold dark:text-dark-accent">🌾</span> 
                 AgriConnect <span className="text-copper dark:text-dark-text3">Nigeria</span>
               </h1>
               <p className="text-sm text-dallas dark:text-dark-text2">
-                Advisory dashboard — generative UI from the farming knowledge graph.
+                AI-powered advisory platform · USSD · Voice · SMS · Vision
               </p>
             </div>
             <button
@@ -203,10 +213,12 @@ export default function App() {
             </button>
           </header>
 
-          {/* Render all mock blocks */}
-          <div className="space-y-4">
+          {/* Grid Layout - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {mockBlocks.map((block, i) => (
-              <GenUIRenderer key={i} block={block} />
+              <div key={i} className="bg-white dark:bg-dark-surface rounded-xl border border-sand dark:border-dark-border shadow-sm overflow-hidden">
+                <GenUIRenderer block={block} />
+              </div>
             ))}
           </div>
 
