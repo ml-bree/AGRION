@@ -184,7 +184,10 @@ def get_advice(
         return final_advice
         
     except Exception as e:
-        print(f"[ai_engine] Engine pipeline failed: {e}")
-        return FALLBACK_ADVICE
+        import traceback
+        print("=== PIPELINE CRASH TRACEBACK ===")
+        traceback.print_exc()
+        print("================================")
+        return f"DEBUG ERROR: {str(e)}" # Temporarily return the real error to the screen
     
     
