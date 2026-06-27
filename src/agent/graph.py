@@ -1,11 +1,20 @@
-"""Graph assembly: triage → expert → formatter.
+"""Graph assembly: <entry> → expert → formatter.
 
 `build_graph` compiles the workflow against a checkpointer. `run_turn` is a thin
 helper the API layer uses to invoke the graph with the phone number as the
 thread id and return the formatted, user-facing string.
 
-Triage merges the former intake + router nodes into one LLM call, so the turn
-costs three model calls (triage, expert, formatter) instead of four.
+The entry step branches on channel:
+
+* USSD takes the single-call ``triage`` node (intake + routing merged), because
+  the session is latency-critical and its input is short — three model calls
+  per turn (triage, expert, formatter).
+* Every other channel takes the richer two-call ``intake`` → ``router`` path,
+  which handles longer/ambiguous voice and chat input more reliably and can
+  afford the extra call — four model calls per turn.
+
+Both paths converge on ``route_by_intent`` and share one compiled graph and
+checkpointer; intent labels live in ``triage`` so the paths can't drift.
 """
 
 from __future__ import annotations
@@ -23,10 +32,17 @@ from src.agent.nodes.experts import (
     finance_expert,
 )
 from src.agent.nodes.formatter import channel_formatter
+from src.agent.nodes.intake import intake_node
+from src.agent.nodes.router import router_node
 from src.agent.nodes.triage import route_by_intent, triage_node
 from src.agent.state import ChannelType, FarmerState, initial_state
 
 logger = logging.getLogger(__name__)
+
+
+def _select_entry(state: FarmerState) -> str:
+    """Pick the entry path: fast triage for USSD, intake+router for the rest."""
+    return "triage" if state["channel_type"] == "ussd" else "intake"
 
 
 def build_graph(checkpointer) -> CompiledStateGraph:
@@ -34,23 +50,29 @@ def build_graph(checkpointer) -> CompiledStateGraph:
     builder = StateGraph(FarmerState)
 
     builder.add_node("triage", triage_node)
+    builder.add_node("intake", intake_node)
+    builder.add_node("router", router_node)
     builder.add_node("agronomy", agronomy_expert)
     builder.add_node("climate", climate_expert)
     builder.add_node("finance", finance_expert)
     builder.add_node("formatter", channel_formatter)
 
-    builder.add_edge(START, "triage")
-
-    # Triage writes domain_intent; this edge fans out to the matching expert.
+    # Entry branch: USSD → fast single-call triage; others → intake → router.
     builder.add_conditional_edges(
-        "triage",
-        route_by_intent,
-        {
-            "agronomy": "agronomy",
-            "climate": "climate",
-            "finance": "finance",
-        },
+        START,
+        _select_entry,
+        {"triage": "triage", "intake": "intake"},
     )
+    builder.add_edge("intake", "router")
+
+    expert_edges = {
+        "agronomy": "agronomy",
+        "climate": "climate",
+        "finance": "finance",
+    }
+    # Both entry paths write domain_intent, then fan out to the matching expert.
+    builder.add_conditional_edges("triage", route_by_intent, expert_edges)
+    builder.add_conditional_edges("router", route_by_intent, expert_edges)
 
     # Every expert funnels into the formatter, then we are done.
     for expert in ("agronomy", "climate", "finance"):
